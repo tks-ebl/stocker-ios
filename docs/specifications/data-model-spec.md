@@ -110,6 +110,8 @@
 - Azure 上の DB に正規データを保持する
 - アプリは Web API 経由で取得・更新する
 - 倉庫 ID を必須の絞り込み条件として扱う
+- DB エンジンは PostgreSQL を採用し、Azure Database for PostgreSQL Flexible Server を本番候補とする
+- ローカル開発では Docker 上の PostgreSQL を利用する
 
 ## 6. 画面とデータの関係
 
@@ -118,3 +120,16 @@
 - 在庫一覧は所属倉庫の在庫のみ表示する
 - 出荷作業は所属倉庫の出荷予定のみ表示する
 - 出荷実績は所属倉庫の実績のみ検索対象とする
+
+## 7. Web API 初期実装で追加した補助項目
+
+- `User`
+  - passwordHash
+- `InventoryHistory`
+  - reason
+- `ShippingResult`
+  - shippingPlanId
+  - locationCode
+  - destinationCode
+
+これらは API の認証、履歴表示、出荷実績追跡を成立させるための補助項目です。

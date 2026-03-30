@@ -57,16 +57,24 @@ struct ShippingListView: View {
             }
             .padding()
 
-            List(plans) { plan in
-                Button {
-                    selectedPlan = plan
-                    isNextActive = true
-                } label: {
-                    VStack(alignment: .leading) {
-                        Text(plan.destinationName)
-                            .font(.headline)
-                        Text("品目数: \(plan.itemCount)")
-                            .font(.subheadline)
+            if plans.isEmpty {
+                ContentUnavailableView(
+                    "出荷プランがありません",
+                    systemImage: "tray",
+                    description: Text("選択した倉庫と条件に一致する出荷プランがありません。")
+                )
+            } else {
+                List(plans) { plan in
+                    Button {
+                        selectedPlan = plan
+                        isNextActive = true
+                    } label: {
+                        VStack(alignment: .leading) {
+                            Text(plan.destinationName)
+                                .font(.headline)
+                            Text("品目数: \(plan.itemCount)")
+                                .font(.subheadline)
+                        }
                     }
                 }
             }

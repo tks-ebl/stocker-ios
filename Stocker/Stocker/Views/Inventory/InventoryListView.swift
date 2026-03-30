@@ -26,74 +26,86 @@ struct InventoryListView: View {
                     endPoint: .bottom
                 )
                 .ignoresSafeArea()
-                
-                // 在庫リスト
-                List(inventoryItems) { item in
-                    HStack(spacing: 12) {
-                        Image(systemName: "cube.box.fill")
-                            .font(.system(size: 30))
-                            .foregroundColor(.appPrimary)
-                        
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(item.itemName)
-                                .font(.headline)
-                                .foregroundStyle(.primary)
-                            
-                            Text("コード: \(item.itemCode)")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            
-                            Text("ロケーション: \(item.location)")
-                                .font(.caption2)
-                                .foregroundStyle(.tertiary)
-                        }
-                        
-                        Spacer()
-                        
-                        Text("\(item.quantity)個")
-                            .bold()
-                            .foregroundColor(.appPrimary)
-                    }
-                    .padding(12)
-                    .background(.ultraThinMaterial)
-                    .cornerRadius(16)
-                    .shadow(color: .gray.opacity(0.15), radius: 4, x: 0, y: 2)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        guard !showPreview else { return }
-                        selectedItem = item
-                        isNavigating = true
-                    }
-                    .simultaneousGesture(
-                        LongPressGesture(minimumDuration: 0.5)
-                            .onChanged { _ in
-                                // 長押し開始時のバイブ（1回目）
-                                let feedback = UIImpactFeedbackGenerator(style: .light)
-                                feedback.impactOccurred()
-                            }
-                            .onEnded { success in
-                                if success {
-                                    // 0.5秒間押し続けた（成功）
-                                    // 2回目のバイブ
-                                    let feedback2 = UIImpactFeedbackGenerator(style: .medium)
-                                    feedback2.impactOccurred()
 
-                                    // プレビュー表示（アニメーション付き）
-                                    withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
-                                        selectedItem = item
-                                        showPreview = true
-                                    }
-                                } else {
-                                    // 長押しキャンセル（0.5秒未満で離した場合）
-                                    // 何もしない or 必要なら処理
+                VStack(spacing: 16) {
+                    if let warehouse = userSession.currentWarehouse, let user = userSession.currentUser {
+                        WarehouseContextView(
+                            warehouseName: warehouse.name,
+                            userName: user.userName,
+                            userCode: user.userCode
+                        )
+                        .padding(.horizontal)
+                        .padding(.top, 8)
+                    }
+
+                    if inventoryItems.isEmpty {
+                        ContentUnavailableView(
+                            "在庫データがありません",
+                            systemImage: "cube.transparent",
+                            description: Text("この倉庫に表示できる在庫データがありません。")
+                        )
+                    } else {
+                        // 在庫リスト
+                        List(inventoryItems) { item in
+                            HStack(spacing: 12) {
+                                Image(systemName: "cube.box.fill")
+                                    .font(.system(size: 30))
+                                    .foregroundColor(.appPrimary)
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(item.itemName)
+                                        .font(.headline)
+                                        .foregroundStyle(.primary)
+
+                                    Text("コード: \(item.itemCode)")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+
+                                    Text("ロケーション: \(item.location)")
+                                        .font(.caption2)
+                                        .foregroundStyle(.tertiary)
                                 }
-                            }
-                    )
 
+                                Spacer()
+
+                                Text("\(item.quantity)個")
+                                    .bold()
+                                    .foregroundColor(.appPrimary)
+                            }
+                            .padding(12)
+                            .background(.ultraThinMaterial)
+                            .cornerRadius(16)
+                            .shadow(color: .gray.opacity(0.15), radius: 4, x: 0, y: 2)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                guard !showPreview else { return }
+                                selectedItem = item
+                                isNavigating = true
+                            }
+                            .simultaneousGesture(
+                                LongPressGesture(minimumDuration: 0.5)
+                                    .onChanged { _ in
+                                        let feedback = UIImpactFeedbackGenerator(style: .light)
+                                        feedback.impactOccurred()
+                                    }
+                                    .onEnded { success in
+                                        if success {
+                                            let feedback2 = UIImpactFeedbackGenerator(style: .medium)
+                                            feedback2.impactOccurred()
+
+                                            withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                                                selectedItem = item
+                                                showPreview = true
+                                            }
+                                        }
+                                    }
+                            )
+                        }
+                        .listStyle(.plain)
+                        .scrollContentBackground(.hidden)
+                        .background(Color.clear)
+                    }
                 }
-                .listStyle(.plain)
-                .scrollContentBackground(.hidden)
-                .background(Color.clear)
                 
                 // プレビューオーバーレイ
                 if showPreview, let previewItem = selectedItem {

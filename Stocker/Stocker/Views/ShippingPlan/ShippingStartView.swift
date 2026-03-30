@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ShippingStartView: View {
     @EnvironmentObject var menuState: MenuState
+    @EnvironmentObject var userSession: UserSession
     @State private var selectedDate = Date()
     @State private var customerCode = ""
     @State private var isNavigating = false
@@ -10,6 +11,14 @@ struct ShippingStartView: View {
         ZStack(alignment: .leading) {
             NavigationStack {
                 VStack(alignment: .leading, spacing: 24) {
+                    if let warehouse = userSession.currentWarehouse, let user = userSession.currentUser {
+                        WarehouseContextView(
+                            warehouseName: warehouse.name,
+                            userName: user.userName,
+                            userCode: user.userCode
+                        )
+                        .padding(.horizontal)
+                    }
 
                     // 出荷日
                     VStack(alignment: .leading) {
@@ -66,6 +75,7 @@ struct ShippingStartView: View {
                 //　画面遷移
                 .navigationDestination(isPresented: $isNavigating) {
                     ShippingListView(selectedDate: selectedDate, customerCode: customerCode)
+                        .environmentObject(userSession)
                 }
             }
         }

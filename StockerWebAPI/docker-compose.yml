@@ -1,0 +1,56 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: src/StockerWebAPI.Api/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_HTTP_PORTS: ${ASPNETCORE_HTTP_PORTS:-8080}
+      ConnectionStrings__Default: ${CONNECTIONSTRINGS__DEFAULT:-Host=postgres;Port=5432;Database=stocker;Username=stocker;Password=stocker_dev_password}
+      Jwt__Issuer: ${JWT__ISSUER:-StockerWebAPI}
+      Jwt__Audience: ${JWT__AUDIENCE:-StockerClients}
+      Jwt__SigningKey: ${JWT__SIGNINGKEY:-ChangeThisToALongRandomSecretForDevelopmentOnly123!}
+      Seed__EnableDemoSeed: ${SEED__ENABLEDEMOSEED:-true}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  unit-tests:
+    profiles: ["test"]
+    build:
+      context: .
+      dockerfile: tests/StockerWebAPI.Api.Tests/Dockerfile
+    environment:
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+
+  smoke-tests:
+    profiles: ["test"]
+    image: curlimages/curl:8.12.1
+    depends_on:
+      api:
+        condition: service_started
+    volumes:
+      - .:/workspace:ro
+    working_dir: /workspace
+    entrypoint: ["/bin/sh", "/workspace/scripts/run-smoke-tests.sh"]
+
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-stocker}
+      POSTGRES_USER: ${POSTGRES_USER:-stocker}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-stocker_dev_password}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-stocker} -d ${POSTGRES_DB:-stocker}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres-data:

@@ -11,6 +11,14 @@ struct ShippingResultSearchView: View {
         ZStack(alignment: .leading) {
             NavigationStack {
                 VStack(alignment: .leading, spacing: 24) {
+                    if let warehouse = userSession.currentWarehouse, let user = userSession.currentUser {
+                        WarehouseContextView(
+                            warehouseName: warehouse.name,
+                            userName: user.userName,
+                            userCode: user.userCode
+                        )
+                        .padding(.horizontal)
+                    }
 
                     // 日付入力
                     VStack(alignment: .leading) {

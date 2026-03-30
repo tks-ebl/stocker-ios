@@ -1,6 +1,6 @@
 import SwiftUI
 
-extension URL: Identifiable {
+extension URL: @retroactive Identifiable {
     public var id: String { self.absoluteString }
 }
 
@@ -10,7 +10,6 @@ struct ShippingResultListView: View {
     let warehouseId: String
 
     @StateObject private var viewModel: ShippingResultViewModel
-    @State private var showShareSheet = false
     @State private var exportURL: URL? = nil
 
     init(date: Date, userCode: String, warehouseId: String) {
@@ -44,30 +43,38 @@ struct ShippingResultListView: View {
                 .padding(.trailing)
             }
 
-            List {
-                ForEach(filteredResults) { result in
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text(result.itemName)
-                                .font(.headline)
-                            Text("ユーザー: \(result.userCode)")
-                                .font(.caption)
-                                .foregroundColor(.gray)
+            if filteredResults.isEmpty {
+                ContentUnavailableView(
+                    "出荷実績がありません",
+                    systemImage: "shippingbox",
+                    description: Text("指定した条件に一致する出荷実績がありません。")
+                )
+            } else {
+                List {
+                    ForEach(filteredResults) { result in
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text(result.itemName)
+                                    .font(.headline)
+                                Text("ユーザー: \(result.userCode)")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                            Spacer()
+                            VStack(alignment: .trailing) {
+                                Text("\(result.quantity) 個")
+                                    .font(.title3.bold())
+                                Text(dateFormatted(result.date))
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                            }
                         }
-                        Spacer()
-                        VStack(alignment: .trailing) {
-                            Text("\(result.quantity) 個")
-                                .font(.title3.bold())
-                            Text(dateFormatted(result.date))
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    .swipeActions {
-                        Button(role: .destructive) {
-                            viewModel.delete(result)
-                        } label: {
-                            Label("削除", systemImage: "trash")
+                        .swipeActions {
+                            Button(role: .destructive) {
+                                viewModel.delete(result)
+                            } label: {
+                                Label("削除", systemImage: "trash")
+                            }
                         }
                     }
                 }
