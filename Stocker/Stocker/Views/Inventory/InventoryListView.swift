@@ -3,12 +3,18 @@ import UIKit
 
 struct InventoryListView: View {
     @EnvironmentObject var menuState: MenuState
+    @EnvironmentObject var userSession: UserSession
     
     @State private var selectedItem: InventoryItem?
     @State private var showPreview: Bool = false
     @State private var isNavigating: Bool = false
     
-    let InventoryItems = sampleInventoryItems
+    var inventoryItems: [InventoryItem] {
+        guard let warehouseId = userSession.currentWarehouse?.id else {
+            return []
+        }
+        return sampleInventoryItems.filter { $0.warehouseId == warehouseId }
+    }
     
     var body: some View {
         NavigationStack {
@@ -22,7 +28,7 @@ struct InventoryListView: View {
                 .ignoresSafeArea()
                 
                 // 在庫リスト
-                List(InventoryItems) { item in
+                List(inventoryItems) { item in
                     HStack(spacing: 12) {
                         Image(systemName: "cube.box.fill")
                             .font(.system(size: 30))

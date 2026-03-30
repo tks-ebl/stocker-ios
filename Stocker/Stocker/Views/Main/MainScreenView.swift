@@ -2,7 +2,6 @@ import SwiftUI
 
 struct MainScreenView: View {
     @EnvironmentObject var menuState: MenuState
-    @Binding var isLoggedIn: Bool
 
     var body: some View {
         ZStack(alignment: .leading) {
@@ -34,7 +33,7 @@ struct MainScreenView: View {
                         }
                     }
 
-                SideMenuView(isLoggedIn: $isLoggedIn)
+                SideMenuView()
                     .frame(width: 240)
                     .background(Color.white)
                     .shadow(radius: 4)

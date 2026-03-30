@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ShippingResultSearchView: View {
     @EnvironmentObject var menuState: MenuState
+    @EnvironmentObject var userSession: UserSession
     @State private var selectedDate: Date = Date()
     @State private var userCode: String = ""
     @State private var isNavigating = false
@@ -67,7 +68,11 @@ struct ShippingResultSearchView: View {
                 }
                 //　画面遷移
                 .navigationDestination(isPresented: $isNavigating) {
-                    ShippingResultListView(date: selectedDate, userCode: userCode)
+                    ShippingResultListView(
+                        date: selectedDate,
+                        userCode: userCode,
+                        warehouseId: userSession.currentWarehouse?.id ?? ""
+                    )
                 }
             }
         }

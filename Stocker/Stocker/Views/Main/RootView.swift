@@ -1,16 +1,18 @@
 import SwiftUI
 
 struct RootView: View {
-    @State private var isLoggedIn = false
     @EnvironmentObject var menuState: MenuState
+    @EnvironmentObject var userSession: UserSession
 
     var body: some View {
-        if isLoggedIn {
-            MainScreenView(isLoggedIn: $isLoggedIn)  // ← Bindingで渡す
+        if userSession.isLoggedIn {
+            MainScreenView()
                 .environmentObject(menuState)
+                .environmentObject(userSession)
         } else {
-            LoginView(isLoggedIn: $isLoggedIn)
+            LoginView()
                 .environmentObject(menuState)
+                .environmentObject(userSession)
         }
     }
 }

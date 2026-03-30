@@ -3,8 +3,8 @@ import SwiftData
 
 @main
 struct StockerApp: App {
-    @State private var isLoggedIn: Bool = false
     @StateObject var menuState = MenuState()
+    @StateObject var userSession = UserSession()
 
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([Item.self])
@@ -20,6 +20,7 @@ struct StockerApp: App {
         WindowGroup {
             RootView()
                 .environmentObject(menuState)
+                .environmentObject(userSession)
         }
         .modelContainer(sharedModelContainer)
     }

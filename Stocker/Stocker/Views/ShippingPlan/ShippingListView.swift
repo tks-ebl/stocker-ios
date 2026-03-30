@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct ShippingListView: View {
+    @EnvironmentObject var userSession: UserSession
     let selectedDate: Date
     let customerCode: String
     
@@ -9,7 +10,23 @@ struct ShippingListView: View {
     @State private var isNextActive = false
     @State private var isShowingQRScanner = false  // QR画面表示制御
 
-    let plans = sampleShippingPlans
+    var plans: [ShippingPlan] {
+        guard let warehouseId = userSession.currentWarehouse?.id else {
+            return []
+        }
+
+        return sampleShippingPlans.filter { plan in
+            guard plan.warehouseId == warehouseId else {
+                return false
+            }
+
+            if customerCode.isEmpty {
+                return true
+            }
+
+            return plan.destinationCode.localizedCaseInsensitiveContains(customerCode)
+        }
+    }
 
     var body: some View {
         VStack {

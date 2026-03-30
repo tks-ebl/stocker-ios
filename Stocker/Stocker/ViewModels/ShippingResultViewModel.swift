@@ -4,7 +4,11 @@ import Foundation
 import SwiftUI
 
 class ShippingResultViewModel: ObservableObject {
-    @Published var allResults: [ShippingResult] = ShippingResultViewModel.makeWeeklyResults()
+    @Published var allResults: [ShippingResult]
+
+    init(warehouseId: String) {
+        allResults = sampleShippingResults.filter { $0.warehouseId == warehouseId }
+    }
     
     func delete(_ result: ShippingResult) {
         allResults.removeAll { $0.id == result.id }
@@ -50,40 +54,34 @@ class ShippingResultViewModel: ObservableObject {
             return nil
         }
     }
+}
 
-    private static func makeWeeklyResults() -> [ShippingResult] {
+let sampleShippingResults: [ShippingResult] = makeWeeklyResults()
+
+private func makeWeeklyResults() -> [ShippingResult] {
         [
-            makeResult(itemName: "りんご", quantity: 3, userCode: "USER1", dayOffset: 0, hour: 9, minute: 15),
-            makeResult(itemName: "みかん", quantity: 2, userCode: "USER2", dayOffset: 0, hour: 11, minute: 40),
-            makeResult(itemName: "バナナ", quantity: 4, userCode: "USER3", dayOffset: 0, hour: 15, minute: 5),
+            makeResult(warehouseId: "WH-TOKYO", itemName: "りんご", quantity: 3, userCode: "USER1", dayOffset: 0, hour: 9, minute: 15),
+            makeResult(warehouseId: "WH-TOKYO", itemName: "みかん", quantity: 2, userCode: "USER2", dayOffset: 0, hour: 11, minute: 40),
+            makeResult(warehouseId: "WH-TOKYO", itemName: "バナナ", quantity: 4, userCode: "USER1", dayOffset: 2, hour: 15, minute: 5),
+            makeResult(warehouseId: "WH-TOKYO", itemName: "ぶどう", quantity: 5, userCode: "USER2", dayOffset: 4, hour: 10, minute: 20),
+            makeResult(warehouseId: "WH-TOKYO", itemName: "りんご", quantity: 1, userCode: "USER2", dayOffset: 6, hour: 17, minute: 20),
 
-            makeResult(itemName: "ぶどう", quantity: 5, userCode: "USER2", dayOffset: 1, hour: 10, minute: 20),
-            makeResult(itemName: "メロン", quantity: 1, userCode: "USER4", dayOffset: 1, hour: 13, minute: 10),
+            makeResult(warehouseId: "WH-OSAKA", itemName: "メロン", quantity: 1, userCode: "USER4", dayOffset: 1, hour: 13, minute: 10),
+            makeResult(warehouseId: "WH-OSAKA", itemName: "もも", quantity: 6, userCode: "USER3", dayOffset: 2, hour: 8, minute: 50),
+            makeResult(warehouseId: "WH-OSAKA", itemName: "いちご", quantity: 3, userCode: "USER4", dayOffset: 3, hour: 12, minute: 30),
+            makeResult(warehouseId: "WH-OSAKA", itemName: "メロン", quantity: 1, userCode: "USER3", dayOffset: 6, hour: 10, minute: 15),
+            makeResult(warehouseId: "WH-OSAKA", itemName: "もも", quantity: 4, userCode: "USER4", dayOffset: 4, hour: 15, minute: 25),
 
-            makeResult(itemName: "もも", quantity: 6, userCode: "USER1", dayOffset: 2, hour: 8, minute: 50),
-            makeResult(itemName: "いちご", quantity: 3, userCode: "USER5", dayOffset: 2, hour: 12, minute: 30),
-            makeResult(itemName: "キウイ", quantity: 2, userCode: "USER3", dayOffset: 2, hour: 16, minute: 45),
-            makeResult(itemName: "りんご", quantity: 1, userCode: "USER2", dayOffset: 2, hour: 17, minute: 20),
-
-            makeResult(itemName: "パイナップル", quantity: 2, userCode: "USER4", dayOffset: 3, hour: 9, minute: 35),
-            makeResult(itemName: "レモン", quantity: 4, userCode: "USER1", dayOffset: 3, hour: 14, minute: 0),
-            makeResult(itemName: "みかん", quantity: 1, userCode: "USER5", dayOffset: 3, hour: 17, minute: 10),
-
-            makeResult(itemName: "バナナ", quantity: 2, userCode: "USER2", dayOffset: 4, hour: 10, minute: 5),
-            makeResult(itemName: "ぶどう", quantity: 3, userCode: "USER3", dayOffset: 4, hour: 11, minute: 55),
-            makeResult(itemName: "もも", quantity: 4, userCode: "USER4", dayOffset: 4, hour: 15, minute: 25),
-            makeResult(itemName: "キウイ", quantity: 1, userCode: "USER1", dayOffset: 4, hour: 18, minute: 10),
-
-            makeResult(itemName: "いちご", quantity: 5, userCode: "USER5", dayOffset: 5, hour: 9, minute: 0),
-            makeResult(itemName: "レモン", quantity: 2, userCode: "USER2", dayOffset: 5, hour: 13, minute: 45),
-
-            makeResult(itemName: "メロン", quantity: 1, userCode: "USER3", dayOffset: 6, hour: 10, minute: 15),
-            makeResult(itemName: "パイナップル", quantity: 2, userCode: "USER4", dayOffset: 6, hour: 12, minute: 50),
-            makeResult(itemName: "りんご", quantity: 3, userCode: "USER1", dayOffset: 6, hour: 16, minute: 5)
+            makeResult(warehouseId: "WH-FUKUOKA", itemName: "キウイ", quantity: 2, userCode: "USER5", dayOffset: 2, hour: 16, minute: 45),
+            makeResult(warehouseId: "WH-FUKUOKA", itemName: "パイナップル", quantity: 2, userCode: "USER5", dayOffset: 3, hour: 9, minute: 35),
+            makeResult(warehouseId: "WH-FUKUOKA", itemName: "レモン", quantity: 4, userCode: "USER5", dayOffset: 3, hour: 14, minute: 0),
+            makeResult(warehouseId: "WH-FUKUOKA", itemName: "いちご", quantity: 5, userCode: "USER5", dayOffset: 5, hour: 9, minute: 0),
+            makeResult(warehouseId: "WH-FUKUOKA", itemName: "パイナップル", quantity: 2, userCode: "USER5", dayOffset: 6, hour: 12, minute: 50)
         ]
     }
 
-    private static func makeResult(
+private func makeResult(
+        warehouseId: String,
         itemName: String,
         quantity: Int,
         userCode: String,
@@ -93,14 +91,15 @@ class ShippingResultViewModel: ObservableObject {
     ) -> ShippingResult {
         ShippingResult(
             id: UUID(),
+            warehouseId: warehouseId,
             itemName: itemName,
             quantity: quantity,
-            date: makeDate(dayOffset: dayOffset, hour: hour, minute: minute),
+            date: makeShippingDate(dayOffset: dayOffset, hour: hour, minute: minute),
             userCode: userCode
         )
     }
 
-    private static func makeDate(dayOffset: Int, hour: Int, minute: Int) -> Date {
+private func makeShippingDate(dayOffset: Int, hour: Int, minute: Int) -> Date {
         let calendar = Calendar(identifier: .gregorian)
         let today = Date()
         let startOfToday = calendar.startOfDay(for: today)
@@ -109,5 +108,4 @@ class ShippingResultViewModel: ObservableObject {
         let startOfWeek = calendar.date(byAdding: .day, value: -mondayOffset, to: startOfToday) ?? startOfToday
         let targetDay = calendar.date(byAdding: .day, value: dayOffset, to: startOfWeek) ?? startOfWeek
         return calendar.date(bySettingHour: hour, minute: minute, second: 0, of: targetDay) ?? targetDay
-    }
 }

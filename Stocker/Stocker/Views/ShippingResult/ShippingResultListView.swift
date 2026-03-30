@@ -7,10 +7,18 @@ extension URL: Identifiable {
 struct ShippingResultListView: View {
     let date: Date
     let userCode: String
+    let warehouseId: String
 
-    @StateObject private var viewModel = ShippingResultViewModel()
+    @StateObject private var viewModel: ShippingResultViewModel
     @State private var showShareSheet = false
     @State private var exportURL: URL? = nil
+
+    init(date: Date, userCode: String, warehouseId: String) {
+        self.date = date
+        self.userCode = userCode
+        self.warehouseId = warehouseId
+        _viewModel = StateObject(wrappedValue: ShippingResultViewModel(warehouseId: warehouseId))
+    }
 
     var filteredResults: [ShippingResult] {
         viewModel.filteredResults(for: date, userCode: userCode)

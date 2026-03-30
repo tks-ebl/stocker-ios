@@ -1,13 +1,12 @@
 import SwiftUI
 
 struct LoginView: View {
-    @Binding var isLoggedIn: Bool
-
     @State private var userCd = ""
     @State private var password = ""
     @State private var isLoading = false
     @State private var loginError: String?
     @EnvironmentObject var menuState: MenuState
+    @EnvironmentObject var userSession: UserSession
 
     var body: some View {
         VStack(spacing: 24) {
@@ -44,6 +43,10 @@ struct LoginView: View {
                     .onChange(of: password) { oldValue, newValue in
                         password = newValue.filter { $0.isASCII && $0.isLetter || $0.isNumber }
                     }
+
+                Text("サンプルログイン: USER1 から USER5")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
 
             if let loginError = loginError {
@@ -80,11 +83,11 @@ struct LoginView: View {
         isLoading = true
         loginError = nil
 
-        // TODO: 本来はAPIなどの認証処理を入れる
-
-        // 成功時は単に状態を切り替える
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            isLoggedIn = true
+            let didLogin = userSession.login(userCode: userCd, password: password)
+            if !didLogin {
+                loginError = "ログインに失敗しました。USER1 から USER5 を入力してください。"
+            }
             isLoading = false
         }
     }

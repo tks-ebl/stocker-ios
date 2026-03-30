@@ -2,7 +2,7 @@ import SwiftUI
 
 struct SideMenuView: View {
     @EnvironmentObject var menuState: MenuState
-    @Binding var isLoggedIn: Bool
+    @EnvironmentObject var userSession: UserSession
 
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
@@ -20,8 +20,7 @@ struct SideMenuView: View {
             .padding(.top, 80)
             .padding(.horizontal)
             .onTapGesture {
-                menuState.currentSelection = .home
-                menuState.isMenuOpen = false
+                menuState.navigate(to: .home)
             }
 
             Divider()
@@ -30,18 +29,15 @@ struct SideMenuView: View {
             VStack(alignment: .leading, spacing: 16) {
                 MenuItemView(title: "出荷作業", systemImage: "box.truck.fill",
                     isSelected: menuState.currentSelection == .shippingWork) {
-                    menuState.currentSelection = .shippingWork
-                    menuState.isMenuOpen = false
+                    menuState.navigate(to: .shippingWork)
                 }
                 MenuItemView(title: "出荷実績", systemImage: "checkmark.seal",
                              isSelected: menuState.currentSelection == .shippingResult) {
-                    menuState.currentSelection = .shippingResult
-                    menuState.isMenuOpen = false
+                    menuState.navigate(to: .shippingResult)
                 }
                 MenuItemView(title: "在庫一覧", systemImage: "cube.box",
                              isSelected: menuState.currentSelection == .inventoryList) {
-                    menuState.currentSelection = .inventoryList
-                    menuState.isMenuOpen = false
+                    menuState.navigate(to: .inventoryList)
                 }
             }
             .padding(.horizontal)
@@ -53,8 +49,22 @@ struct SideMenuView: View {
 
             // ログアウトやバージョン情報など
             VStack(alignment: .leading, spacing: 12) {
+                if let warehouse = userSession.currentWarehouse, let user = userSession.currentUser {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(warehouse.name)
+                            .font(.headline)
+                        Text("担当者: \(user.userName)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text("ユーザーCD: \(user.userCode)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.bottom, 8)
+                }
+
                 Button(action: {
-                    isLoggedIn = false
+                    userSession.logout()
                     menuState.isMenuOpen = false
                 }) {
                     HStack(spacing: 16) {
