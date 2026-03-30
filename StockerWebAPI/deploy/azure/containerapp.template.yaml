@@ -1,0 +1,54 @@
+location: japaneast
+name: stocker-webapi
+type: Microsoft.App/containerApps
+properties:
+  managedEnvironmentId: /subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.App/managedEnvironments/<container-app-environment>
+  configuration:
+    ingress:
+      external: true
+      targetPort: 8080
+      transport: auto
+    secrets:
+      - name: connection-strings-default
+        value: <set-in-deployment-or-key-vault-reference>
+      - name: jwt-signing-key
+        value: <set-in-deployment-or-key-vault-reference>
+  template:
+    containers:
+      - image: <acr-name>.azurecr.io/stockerwebapi-api:latest
+        name: stockerwebapi-api
+        env:
+          - name: ASPNETCORE_ENVIRONMENT
+            value: Production
+          - name: ASPNETCORE_HTTP_PORTS
+            value: "8080"
+          - name: ConnectionStrings__Default
+            secretRef: connection-strings-default
+          - name: Jwt__Issuer
+            value: StockerWebAPI
+          - name: Jwt__Audience
+            value: StockerClients
+          - name: Jwt__SigningKey
+            secretRef: jwt-signing-key
+          - name: Seed__EnableDemoSeed
+            value: "false"
+        probes:
+          - type: Liveness
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          - type: Readiness
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15
+        resources:
+          cpu: 0.5
+          memory: 1Gi
+    scale:
+      minReplicas: 1
+      maxReplicas: 2
+
