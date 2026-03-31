@@ -26,6 +26,8 @@
 
 - 開発時は上記 3 モードを切り替えて確認できるようにする
 - 公開版ビルドでは公開用のみを利用し、切替 UI への導線は持たせない
+- 現在の iOS 実装では、`Debug = development`、`Release = public` をビルド設定で切り替える
+- カスタマイズ用は `STOCKERConnectionMode = customize` を設定したビルド構成で扱う
 
 ## 2. API 連携の目的
 

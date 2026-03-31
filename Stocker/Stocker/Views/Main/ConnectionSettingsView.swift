@@ -10,10 +10,14 @@ struct ConnectionSettingsView: View {
     @State private var isChecking = false
     @State private var isSaving = false
 
+    private let buildSettings = AppBuildSettings.shared
+
     var body: some View {
         NavigationStack {
             Form {
                 Section("現在の設定") {
+                    LabeledContent("接続モード", value: buildSettings.connectionModeLabel)
+
                     Text("保存済み URL")
                         .font(.caption)
                         .foregroundColor(.secondary)
@@ -22,12 +26,13 @@ struct ConnectionSettingsView: View {
                 }
 
                 Section("接続先 URL") {
-                    TextField("http://localhost:8080", text: $apiBaseURL)
+                    TextField(buildSettings.defaultAPIBaseURL, text: $apiBaseURL)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled(true)
                         .keyboardType(.URL)
+                        .disabled(!buildSettings.allowsCustomURLInput)
 
-                    Text("例: `http://localhost:8080` または `https://192.168.1.10:8080`")
+                    Text(helperText)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -55,13 +60,13 @@ struct ConnectionSettingsView: View {
                             Text("保存")
                         }
                     }
-                    .disabled(isChecking || isSaving)
+                    .disabled(isChecking || isSaving || !buildSettings.allowsCustomURLInput)
 
                     Button("既定値へ戻す") {
-                        apiBaseURL = "http://localhost:8080"
+                        apiBaseURL = buildSettings.defaultAPIBaseURL
                         statusMessage = nil
                     }
-                    .disabled(isChecking || isSaving)
+                    .disabled(isChecking || isSaving || !buildSettings.allowsCustomURLInput)
                 }
 
                 if let statusMessage {
@@ -84,6 +89,17 @@ struct ConnectionSettingsView: View {
                     }
                 }
             }
+        }
+    }
+
+    private var helperText: String {
+        switch buildSettings.connectionMode {
+        case .development:
+            return "開発用ビルドではローカル URL を固定利用します。"
+        case .publicRelease:
+            return "公開用ビルドでは Azure URL を固定利用します。"
+        case .customize:
+            return "例: `https://192.168.1.10:8080`"
         }
     }
 
@@ -111,6 +127,12 @@ struct ConnectionSettingsView: View {
     }
 
     private func saveSettings() {
+        guard buildSettings.allowsCustomURLInput else {
+            statusMessage = "このビルドでは接続先を編集できません。"
+            isError = true
+            return
+        }
+
         isSaving = true
         statusMessage = nil
         isError = false

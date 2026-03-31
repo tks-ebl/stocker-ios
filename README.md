@@ -63,6 +63,17 @@
   - 画面から URL を手入力する
   - 顧客環境や社内サーバー接続を想定する
 
+現在のビルド設定は次の初期値です。
+
+- `Debug`
+  - `STOCKERConnectionMode = development`
+  - `STOCKERDevelopmentAPIBaseURL = http://localhost:8080`
+- `Release`
+  - `STOCKERConnectionMode = public`
+  - `STOCKERPublicAPIBaseURL = https://replace-me.invalid`
+
+カスタマイズ用ビルドを作る場合は、利用するビルド構成で `STOCKERConnectionMode = customize` に変更し、必要に応じて接続設定画面を有効化して使います。
+
 未実装または今後の課題:
 
 - 永続化データの本格利用
@@ -108,9 +119,10 @@ Docker テスト:
 - `Info.plist` に `NSLocalNetworkUsageDescription` を設定済みです
 - 現在の iOS アプリは iPhone 専用です
 - iPad 対応は将来対応候補として検討します
-- 現在の実装は、隠し導線の接続設定画面から任意 URL を保存できる開発寄りの状態です
+- 現在の実装は、ビルド設定に応じて接続モードを切り替える構成です
 - 公開アプリ版では Azure URL のみを使い、接続切替画面への導線は持たせません
 - カスタマイズ版では接続設定画面を有効化し、URL 手入力を許可する想定です
+- `Release` の Azure URL は `https://replace-me.invalid` の仮値なので、配布前に実 URL へ更新が必要です
 - このリポジトリは App Store 公開の練習も兼ねて段階的に整備中です
 - Web API の詳細は `StockerWebAPI/README.md` を参照してください
 - Azure 最小構成の運用メモは `docs/deploy-azure-minimal.md`、`docs/config.md`、`docs/operations.md` を参照してください

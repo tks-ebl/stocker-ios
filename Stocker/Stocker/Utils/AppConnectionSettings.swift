@@ -1,17 +1,25 @@
 import Foundation
 
 enum AppConnectionSettings {
-    private static let apiBaseURLKey = "api_base_url"
-    private static let defaultAPIBaseURL = "http://localhost:8080"
+    private static let customAPIBaseURLKey = "custom_api_base_url"
 
     static func registerDefaults() {
         UserDefaults.standard.register(defaults: [
-            apiBaseURLKey: defaultAPIBaseURL
+            customAPIBaseURLKey: AppBuildSettings.shared.defaultAPIBaseURL
         ])
     }
 
     static var apiBaseURLString: String {
-        (UserDefaults.standard.string(forKey: apiBaseURLKey) ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        switch AppBuildSettings.shared.connectionMode {
+        case .development:
+            return AppBuildSettings.shared.developmentAPIBaseURL
+        case .publicRelease:
+            return AppBuildSettings.shared.publicAPIBaseURL
+        case .customize:
+            let savedValue = UserDefaults.standard.string(forKey: customAPIBaseURLKey) ?? ""
+            let trimmedValue = savedValue.trimmingCharacters(in: .whitespacesAndNewlines)
+            return trimmedValue.isEmpty ? AppBuildSettings.shared.defaultAPIBaseURL : trimmedValue
+        }
     }
 
     static var apiBaseURL: URL? {
@@ -19,11 +27,19 @@ enum AppConnectionSettings {
     }
 
     static func save(apiBaseURLString: String) {
-        UserDefaults.standard.set(apiBaseURLString.trimmingCharacters(in: .whitespacesAndNewlines), forKey: apiBaseURLKey)
+        guard AppBuildSettings.shared.allowsCustomURLInput else {
+            return
+        }
+
+        UserDefaults.standard.set(apiBaseURLString.trimmingCharacters(in: .whitespacesAndNewlines), forKey: customAPIBaseURLKey)
     }
 
     static func resetToDefault() {
-        UserDefaults.standard.set(defaultAPIBaseURL, forKey: apiBaseURLKey)
+        guard AppBuildSettings.shared.allowsCustomURLInput else {
+            return
+        }
+
+        UserDefaults.standard.set(AppBuildSettings.shared.defaultAPIBaseURL, forKey: customAPIBaseURLKey)
     }
 
     static func normalizedURL(from rawValue: String) -> URL? {
