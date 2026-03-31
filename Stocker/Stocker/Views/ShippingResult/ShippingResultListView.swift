@@ -5,6 +5,7 @@ extension URL: @retroactive Identifiable {
 }
 
 struct ShippingResultListView: View {
+    @EnvironmentObject var userSession: UserSession
     let date: Date
     let userCode: String
     let warehouseId: String
@@ -43,7 +44,18 @@ struct ShippingResultListView: View {
                 .padding(.trailing)
             }
 
-            if filteredResults.isEmpty {
+            if let errorMessage = viewModel.errorMessage, userSession.usesWebAPI {
+                Text(errorMessage)
+                    .font(.footnote)
+                    .foregroundColor(.red)
+                    .padding(.horizontal)
+            }
+
+            if viewModel.isLoading && userSession.usesWebAPI {
+                ProgressView("Web API から出荷実績を取得しています")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal)
+            } else if filteredResults.isEmpty {
                 ContentUnavailableView(
                     "出荷実績がありません",
                     systemImage: "shippingbox",
@@ -70,10 +82,12 @@ struct ShippingResultListView: View {
                             }
                         }
                         .swipeActions {
-                            Button(role: .destructive) {
-                                viewModel.delete(result)
-                            } label: {
-                                Label("削除", systemImage: "trash")
+                            if !userSession.usesWebAPI {
+                                Button(role: .destructive) {
+                                    viewModel.delete(result)
+                                } label: {
+                                    Label("削除", systemImage: "trash")
+                                }
                             }
                         }
                     }
@@ -84,6 +98,9 @@ struct ShippingResultListView: View {
             ShareSheet(activityItems: [url])
         }
         .navigationTitle("🚚 出荷実績リスト")
+        .task(id: "\(date.timeIntervalSince1970)-\(userCode)-\(userSession.currentWarehouse?.apiWarehouseId ?? "")") {
+            await viewModel.loadIfNeeded(userSession: userSession, date: date, userCode: userCode)
+        }
     }
 
     private func dateFormatted(_ date: Date) -> String {

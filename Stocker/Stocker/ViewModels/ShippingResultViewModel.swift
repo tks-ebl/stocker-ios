@@ -3,11 +3,49 @@
 import Foundation
 import SwiftUI
 
+@MainActor
 class ShippingResultViewModel: ObservableObject {
     @Published var allResults: [ShippingResult]
+    @Published private(set) var isLoading = false
+    @Published private(set) var errorMessage: String?
 
     init(warehouseId: String) {
         allResults = sampleShippingResults.filter { $0.warehouseId == warehouseId }
+    }
+
+    func loadIfNeeded(userSession: UserSession, date: Date, userCode: String) async {
+        guard userSession.usesWebAPI else {
+            errorMessage = nil
+            isLoading = false
+            return
+        }
+
+        guard let apiWarehouseId = userSession.currentWarehouse?.apiWarehouseId,
+              let scopeWarehouseId = userSession.currentWarehouse?.id,
+              let token = TokenManager.load() else {
+            allResults = []
+            errorMessage = "Web API の認証情報が見つかりません。"
+            isLoading = false
+            return
+        }
+
+        isLoading = true
+        errorMessage = nil
+
+        do {
+            allResults = try await StockerAPIService.shared.fetchShippingResults(
+                warehouseId: apiWarehouseId,
+                scopeWarehouseId: scopeWarehouseId,
+                date: date,
+                userCode: userCode,
+                bearerToken: token
+            )
+        } catch {
+            allResults = []
+            errorMessage = error.localizedDescription
+        }
+
+        isLoading = false
     }
     
     func delete(_ result: ShippingResult) {

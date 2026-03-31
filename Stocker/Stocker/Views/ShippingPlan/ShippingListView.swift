@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ShippingListView: View {
     @EnvironmentObject var userSession: UserSession
+    @StateObject private var viewModel = ShippingPlanViewModel()
     let selectedDate: Date
     let customerCode: String
     
@@ -11,6 +12,10 @@ struct ShippingListView: View {
     @State private var isShowingQRScanner = false  // QR画面表示制御
 
     var plans: [ShippingPlan] {
+        if userSession.usesWebAPI {
+            return viewModel.plans
+        }
+
         guard let warehouseId = userSession.currentWarehouse?.id else {
             return []
         }
@@ -57,7 +62,18 @@ struct ShippingListView: View {
             }
             .padding()
 
-            if plans.isEmpty {
+            if let errorMessage = viewModel.errorMessage, userSession.usesWebAPI {
+                Text(errorMessage)
+                    .font(.footnote)
+                    .foregroundColor(.red)
+                    .padding(.horizontal)
+            }
+
+            if viewModel.isLoading && userSession.usesWebAPI {
+                ProgressView("Web API から出荷予定を取得しています")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal)
+            } else if plans.isEmpty {
                 ContentUnavailableView(
                     "出荷プランがありません",
                     systemImage: "tray",
@@ -86,6 +102,9 @@ struct ShippingListView: View {
             if let plan = selectedPlan {
                 ShippingDetailLotListView(selectedPlan: plan)
             }
+        }
+        .task(id: "\(selectedDate.timeIntervalSince1970)-\(customerCode)-\(userSession.currentWarehouse?.apiWarehouseId ?? "")") {
+            await viewModel.loadIfNeeded(userSession: userSession, selectedDate: selectedDate, customerCode: customerCode)
         }
         //　画面遷移（ダイアログ）
         .fullScreenCover(isPresented: $isShowingQRScanner) {

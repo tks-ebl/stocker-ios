@@ -48,6 +48,35 @@ struct APIInventoryHistoryResponse: Decodable {
     let executedByUserCode: String
 }
 
+struct APIShippingPlanResponse: Decodable {
+    let shippingPlanId: UUID
+    let shippingDate: String
+    let destinationCode: String
+    let destinationName: String
+    let items: [APIShippingPlanItemResponse]
+}
+
+struct APIShippingPlanItemResponse: Decodable {
+    let shippingPlanItemId: UUID
+    let itemCode: String
+    let itemName: String
+    let locationCode: String
+    let plannedQuantity: Int
+    let actualQuantity: Int
+}
+
+struct APIShippingResultResponse: Decodable {
+    let shippingResultId: UUID
+    let shippingPlanId: UUID?
+    let itemCode: String
+    let itemName: String
+    let locationCode: String
+    let destinationCode: String
+    let quantity: Int
+    let executedByUserCode: String
+    let executedAt: Date
+}
+
 final class StockerAPIService {
     static let shared = StockerAPIService()
 
@@ -113,6 +142,92 @@ final class StockerAPIService {
                 quantity: history.quantityDelta,
                 executedBy: history.executedByUserCode,
                 reason: history.reason
+            )
+        }
+    }
+
+    func fetchShippingPlans(
+        warehouseId: String,
+        scopeWarehouseId: String,
+        selectedDate: Date,
+        destinationCode: String,
+        bearerToken: String
+    ) async throws -> [ShippingPlan] {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd"
+
+        var queryItems = [
+            URLQueryItem(name: "shippingDate", value: formatter.string(from: selectedDate))
+        ]
+
+        if !destinationCode.isEmpty {
+            queryItems.append(URLQueryItem(name: "destinationCode", value: destinationCode))
+        }
+
+        let response: [APIShippingPlanResponse] = try await client.get(
+            path: "/warehouses/\(warehouseId)/shipping-plans",
+            queryItems: queryItems,
+            bearerToken: bearerToken
+        )
+
+        return response.map { plan in
+            ShippingPlan(
+                id: plan.shippingPlanId.uuidString,
+                warehouseId: scopeWarehouseId,
+                destinationCode: plan.destinationCode,
+                destinationName: plan.destinationName,
+                itemCount: plan.items.count,
+                items: plan.items.map { item in
+                    ShippingItem(
+                        id: item.shippingPlanItemId.uuidString,
+                        location: item.locationCode,
+                        code: item.itemCode,
+                        name: item.itemName,
+                        quantity: item.plannedQuantity,
+                        actual: item.actualQuantity == 0 ? nil : item.actualQuantity
+                    )
+                }
+            )
+        }
+    }
+
+    func fetchShippingResults(
+        warehouseId: String,
+        scopeWarehouseId: String,
+        date: Date,
+        userCode: String,
+        bearerToken: String
+    ) async throws -> [ShippingResult] {
+        let calendar = Calendar(identifier: .gregorian)
+        let startOfDay = calendar.startOfDay(for: date)
+        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) ?? startOfDay
+        let formatter = ISO8601DateFormatter()
+
+        var queryItems = [
+            URLQueryItem(name: "dateFrom", value: formatter.string(from: startOfDay)),
+            URLQueryItem(name: "dateTo", value: formatter.string(from: endOfDay))
+        ]
+
+        if !userCode.isEmpty {
+            queryItems.append(URLQueryItem(name: "userCode", value: userCode))
+        }
+
+        let response: [APIShippingResultResponse] = try await client.get(
+            path: "/warehouses/\(warehouseId)/shipping-results",
+            queryItems: queryItems,
+            bearerToken: bearerToken
+        )
+
+        return response.map { result in
+            ShippingResult(
+                id: result.shippingResultId,
+                warehouseId: scopeWarehouseId,
+                itemName: result.itemName,
+                quantity: result.quantity,
+                date: result.executedAt,
+                userCode: result.executedByUserCode
             )
         }
     }
