@@ -3,6 +3,7 @@ import SwiftUI
 struct MainContentView: View {
     @EnvironmentObject var menuState: MenuState
     @EnvironmentObject var userSession: UserSession
+    @StateObject private var dashboardViewModel = DashboardViewModel()
 
     private var warehouseId: String {
         userSession.currentWarehouse?.id ?? ""
@@ -28,12 +29,24 @@ struct MainContentView: View {
         shippingResults.filter { Calendar.current.isDateInToday($0.date) }
     }
 
+    private var dashboardShippingResultCount: Int {
+        dashboardViewModel.summary?.shippingResultCountToday ?? todayShippingResults.count
+    }
+
     private var totalInventoryQuantity: Int {
         inventoryItems.reduce(0) { $0 + $1.quantity }
     }
 
+    private var dashboardInventoryCount: Int {
+        dashboardViewModel.summary?.inventoryItemCount ?? totalInventoryQuantity
+    }
+
     private var todayShippingQuantity: Int {
         todayShippingResults.reduce(0) { $0 + $1.quantity }
+    }
+
+    private var dashboardShippingPlanCount: Int {
+        dashboardViewModel.summary?.shippingPlanCount ?? (pendingShippingItemsCount + discrepancyCount)
     }
 
     private var pendingShippingItemsCount: Int {
@@ -72,11 +85,23 @@ struct MainContentView: View {
                 .foregroundColor(.secondary)
                 .padding(.horizontal)
 
+            if let errorMessage = dashboardViewModel.errorMessage, userSession.usesWebAPI {
+                Text(errorMessage)
+                    .font(.footnote)
+                    .foregroundColor(.red)
+                    .padding(.horizontal)
+            }
+
             VStack(spacing: 16) {
-                InfoCardView(title: "本日の出荷実績", value: todayShippingResults.count, color: .blue, subtitle: "今日の処理件数")
+                if dashboardViewModel.isLoading && userSession.usesWebAPI {
+                    ProgressView("Web API から集計を取得しています")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                InfoCardView(title: "本日の出荷実績", value: dashboardShippingResultCount, color: .blue, subtitle: userSession.usesWebAPI ? "Web API の今日の実績件数" : "今日の処理件数")
                 InfoCardView(title: "本日の出荷数量", value: todayShippingQuantity, color: .green, subtitle: "今日の出荷個数")
-                InfoCardView(title: "在庫総数", value: totalInventoryQuantity, color: .purple, subtitle: "倉庫内の在庫個数")
-                InfoCardView(title: "未処理件数", value: pendingShippingItemsCount + discrepancyCount, color: .indigo, subtitle: "未入力 + 差分あり")
+                InfoCardView(title: "在庫総数", value: dashboardInventoryCount, color: .purple, subtitle: userSession.usesWebAPI ? "Web API の在庫件数" : "倉庫内の在庫個数")
+                InfoCardView(title: userSession.usesWebAPI ? "本日の出荷予定" : "未処理件数", value: dashboardShippingPlanCount, color: .indigo, subtitle: userSession.usesWebAPI ? "Web API の当日出荷予定件数" : "未入力 + 差分あり")
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text("棚卸日")
@@ -105,6 +130,9 @@ struct MainContentView: View {
             .padding(.horizontal)
 
             Spacer()
+        }
+        .task(id: userSession.currentWarehouse?.apiWarehouseId) {
+            await dashboardViewModel.loadIfNeeded(userSession: userSession)
         }
     }
     

@@ -24,6 +24,13 @@ struct APIWarehouseSummary: Decodable {
     let warehouseName: String
 }
 
+struct APIDashboardResponse: Decodable {
+    let warehouseId: UUID
+    let shippingPlanCount: Int
+    let shippingResultCountToday: Int
+    let inventoryItemCount: Int
+}
+
 final class StockerAPIService {
     static let shared = StockerAPIService()
 
@@ -41,6 +48,19 @@ final class StockerAPIService {
         try await client.post(
             path: "/auth/login",
             body: APILoginRequest(userCode: userCode, password: password)
+        )
+    }
+
+    func fetchDashboard(warehouseId: String, bearerToken: String) async throws -> DashboardSummary {
+        let response: APIDashboardResponse = try await client.get(
+            path: "/warehouses/\(warehouseId)/dashboard",
+            bearerToken: bearerToken
+        )
+
+        return DashboardSummary(
+            shippingPlanCount: response.shippingPlanCount,
+            shippingResultCountToday: response.shippingResultCountToday,
+            inventoryItemCount: response.inventoryItemCount
         )
     }
 }
