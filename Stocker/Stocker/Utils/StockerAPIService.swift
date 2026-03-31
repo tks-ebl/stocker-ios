@@ -77,6 +77,26 @@ struct APIShippingResultResponse: Decodable {
     let executedAt: Date
 }
 
+struct APICreateShippingResultsRequest: Encodable {
+    let shippingPlanId: UUID?
+    let destinationCode: String
+    let executedAt: Date?
+    let results: [APICreateShippingResultItemRequest]
+}
+
+struct APICreateShippingResultItemRequest: Encodable {
+    let itemCode: String
+    let itemName: String
+    let locationCode: String
+    let quantity: Int
+}
+
+struct APICreateShippingResultsResponse: Decodable {
+    let warehouseId: UUID
+    let createdCount: Int
+    let executedAt: Date
+}
+
 final class StockerAPIService {
     static let shared = StockerAPIService()
 
@@ -230,5 +250,39 @@ final class StockerAPIService {
                 userCode: result.executedByUserCode
             )
         }
+    }
+
+    func createShippingResults(
+        warehouseId: String,
+        shippingPlanId: String?,
+        destinationCode: String,
+        items: [ShippingItem],
+        bearerToken: String
+    ) async throws -> Int {
+        let request = APICreateShippingResultsRequest(
+            shippingPlanId: shippingPlanId.flatMap(UUID.init(uuidString:)),
+            destinationCode: destinationCode,
+            executedAt: Date(),
+            results: items.compactMap { item in
+                guard let actual = item.actual, actual > 0 else {
+                    return nil
+                }
+
+                return APICreateShippingResultItemRequest(
+                    itemCode: item.code,
+                    itemName: item.name,
+                    locationCode: item.location,
+                    quantity: actual
+                )
+            }
+        )
+
+        let response: APICreateShippingResultsResponse = try await client.post(
+            path: "/warehouses/\(warehouseId)/shipping-results",
+            body: request,
+            bearerToken: bearerToken
+        )
+
+        return response.createdCount
     }
 }

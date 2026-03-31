@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct ShippingDetailLotListView: View {
+    @EnvironmentObject var userSession: UserSession
     let selectedPlan: ShippingPlan
 
     @Environment(\.presentationMode) var presentationMode
@@ -11,6 +12,9 @@ struct ShippingDetailLotListView: View {
     @State private var selectedItem: ShippingItem?
     @State private var workingItems: [ShippingItem] = []
     @State private var showCompletionAlert = false
+    @State private var saveErrorMessage: String?
+    @State private var isSaving = false
+    @State private var didSaveSuccessfully = false
 
     var items: [ShippingItem] {
         workingItems
@@ -18,6 +22,10 @@ struct ShippingDetailLotListView: View {
 
     var groupedItems: [String: [ShippingItem]] {
         Dictionary(grouping: items, by: { $0.location })
+    }
+
+    var canSubmitResults: Bool {
+        !items.isEmpty && items.allSatisfy { ($0.actual ?? 0) > 0 }
     }
 
     var body: some View {
@@ -45,6 +53,13 @@ struct ShippingDetailLotListView: View {
                 }
             }
             .padding()
+
+            if let saveErrorMessage {
+                Text(saveErrorMessage)
+                    .font(.footnote)
+                    .foregroundColor(.red)
+                    .padding(.horizontal)
+            }
 
             List {
                 ForEach(groupedItems.keys.sorted(), id: \.self) { location in
@@ -81,6 +96,28 @@ struct ShippingDetailLotListView: View {
                         }
                     }
                 }
+            }
+
+            if userSession.usesWebAPI {
+                Button(action: submitResults) {
+                    HStack {
+                        if isSaving {
+                            ProgressView()
+                                .progressViewStyle(.circular)
+                        } else {
+                            Text("出荷実績を登録")
+                                .bold()
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(canSubmitResults ? Color.appPrimary : Color.gray.opacity(0.4))
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+                }
+                .disabled(isSaving || !canSubmitResults)
+                .padding(.horizontal)
+                .padding(.bottom)
             }
         }
         .navigationTitle("🚚出荷作業")
@@ -129,7 +166,7 @@ struct ShippingDetailLotListView: View {
                 presentationMode.wrappedValue.dismiss()
             }
         } message: {
-            Text("すべての出荷品目が完了しました。")
+            Text(didSaveSuccessfully ? "出荷実績を登録しました。" : "すべての出荷品目が完了しました。")
         }
 
         .onAppear {
@@ -141,6 +178,49 @@ struct ShippingDetailLotListView: View {
     private func updateItem(_ item: ShippingItem, with actual: Int) {
         if let index = workingItems.firstIndex(where: { $0.id == item.id }) {
             workingItems[index].actual = actual
+        }
+    }
+
+    private func submitResults() {
+        guard userSession.usesWebAPI else {
+            return
+        }
+
+        guard canSubmitResults else {
+            saveErrorMessage = "すべての品目に実績数を入力してください。"
+            return
+        }
+
+        guard let apiWarehouseId = userSession.currentWarehouse?.apiWarehouseId,
+              let token = TokenManager.load() else {
+            saveErrorMessage = "Web API の認証情報が見つかりません。"
+            return
+        }
+
+        isSaving = true
+        saveErrorMessage = nil
+
+        Task {
+            do {
+                _ = try await StockerAPIService.shared.createShippingResults(
+                    warehouseId: apiWarehouseId,
+                    shippingPlanId: selectedPlan.id,
+                    destinationCode: selectedPlan.destinationCode,
+                    items: items,
+                    bearerToken: token
+                )
+
+                await MainActor.run {
+                    isSaving = false
+                    didSaveSuccessfully = true
+                    showCompletionAlert = true
+                }
+            } catch {
+                await MainActor.run {
+                    isSaving = false
+                    saveErrorMessage = error.localizedDescription
+                }
+            }
         }
     }
 
