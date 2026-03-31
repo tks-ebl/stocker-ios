@@ -133,3 +133,10 @@
   - destinationCode
 
 これらは API の認証、履歴表示、出荷実績追跡を成立させるための補助項目です。
+
+## 8. 現在の DB 実装メモ
+
+- スキーマは EF Core Migration で管理する
+- `InventoryItem` は `warehouseId + itemCode + locationCode` を一意とする
+- `ShippingPlanItem` は `shippingPlanId + itemCode + locationCode` を一意とする
+- 出荷実績登録時は在庫数量と出荷計画明細の整合性をサーバー側で検証する

@@ -7,7 +7,7 @@
 - デモ用途
 - 一人運用
 - 可用性よりコスト優先
-- 秘密情報は `App Service` のアプリ設定で管理
+- 秘密情報は Azure 側の Secret / 環境変数で管理
 - ログはエラー中心
 
 ## Important
@@ -18,22 +18,16 @@
 - EF Core Provider が `Npgsql.EntityFrameworkCore.PostgreSQL`
 - Migration も PostgreSQL 向け
 
-そのため、`Azure SQL Database Serverless` を使うには、別途アプリ側の DB 対応変更が必要です。
-
-このドキュメントでは、次の2段階で進める前提にします。
-
-1. まず Azure 配置に必要な運用情報を整備する
-2. Azure SQL へ切り替える場合は、DB プロバイダー変更を別タスクで実施する
+そのため、このドキュメントでも Azure 側の DB は `Azure Database for PostgreSQL Flexible Server` を前提にします。
 
 ## Azure で作るもの
 
 | 種別 | 例 | 用途 |
 |---|---|---|
 | Resource Group | `stocker-demo-rg` | 関連リソースの入れ物 |
-| App Service Plan | `stocker-demo-plan` | API 実行基盤 |
-| App Service | `stocker-demo-api` | API 公開先 |
-| SQL logical server | `stocker-demo-sqlsvr` | Azure SQL の親サーバー |
-| Azure SQL Database | `stocker-demo-db` | アプリ用 DB |
+| Container Apps Environment または App Service Plan | `stocker-demo-env` / `stocker-demo-plan` | API 実行基盤 |
+| Container App または App Service | `stocker-demo-api` | API 公開先 |
+| PostgreSQL Flexible Server | `stocker-demo-pg` | アプリ用 DB |
 | Application Insights | `stocker-demo-ai` | エラー確認 |
 | Budget | `stocker-demo-budget` | 予算通知 |
 
@@ -46,60 +40,59 @@ Azure Portal で `Resource groups` を開き、`Create` を選択します。
 - Name: `stocker-demo-rg`
 - Region: `Japan East`
 
-## 2. Azure SQL Database Serverless を作る
+## 2. Azure Database for PostgreSQL Flexible Server を作る
 
-`SQL databases` から `Create` を選択します。
+`Azure Database for PostgreSQL flexible servers` から `Create` を選択します。
 
 推奨の開始値:
 
-- Database name: `stocker-demo-db`
-- Server: 新規作成
-- Compute tier: `Serverless`
-- Service tier: `General Purpose`
-- Auto-pause: 有効
-- 最小構成で開始
+- Server name: `stocker-demo-pg`
+- Workload type: `Development`
+- Compute tier: 小さい構成から開始
+- High availability: 無効で開始
+- Public access または Private access は運用方針に合わせて選択
 
 補足:
 
-- Azure SQL Serverless は、アイドル時に compute 課金を抑えやすい構成です
-- 最初の接続時に再開待ちが発生することがあります
+- PostgreSQL Flexible Server を本番 DB 候補とする
+- SSL 必須の接続文字列を使う
 
 参考:
 
-- [Create a single database in Azure SQL Database](https://learn.microsoft.com/en-us/azure/azure-sql/database/single-database-create-quickstart)
-- [Serverless compute tier for Azure SQL Database](https://learn.microsoft.com/en-us/azure/azure-sql/database/serverless-tier-overview)
+- [Quickstart: Create an Azure Database for PostgreSQL flexible server](https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/quickstart-create-server-portal)
 
-### 3. SQL の接続制御を設定する
+### 3. PostgreSQL の接続制御を設定する
 
-SQL Server の `Networking` で、必要な接続元だけを許可します。
+PostgreSQL Flexible Server の `Networking` で、必要な接続元だけを許可します。
 
 最小構成では以下を確認します。
 
 - 自分の作業端末から接続できる
-- App Service からの接続方針を決める
+- Container Apps または App Service からの接続方針を決める
 
 参考:
 
-- [Network access controls for Azure SQL Database](https://learn.microsoft.com/en-us/azure/azure-sql/database/network-access-controls-overview)
+- [Networking concepts for Azure Database for PostgreSQL flexible server](https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/concepts-networking-private)
 
-### 4. App Service を作る
+### 4. Container Apps または App Service を作る
 
-`App Services` から `Create` を選択します。
+`Container Apps` または `App Services` から `Create` を選択します。
 
 設定の考え方:
 
-- Publish: `Code`
-- Runtime stack: API 実装に合わせる
+- Docker イメージを使う
 - Region: `Japan East`
-- Pricing plan: 小さいプランから開始
+- 小さい構成から開始
+- `/health` をヘルスチェックに使う
 
 参考:
 
-- [Quickstart: Create an App Service app in the Azure portal](https://learn.microsoft.com/en-us/azure/app-service/quickstart-html)
+- [Quickstart: Deploy your first container app using the Azure portal](https://learn.microsoft.com/en-us/azure/container-apps/quickstart-portal)
+- [Quickstart: Create an App Service app](https://learn.microsoft.com/en-us/azure/app-service/quickstart-custom-container)
 
-### 5. App Service のアプリ設定を入れる
+### 5. Azure の環境変数を入れる
 
-`Settings > Environment variables` に設定します。
+Container Apps または App Service に環境変数を設定します。
 
 最低限必要な候補:
 
@@ -108,14 +101,11 @@ SQL Server の `Networking` で、必要な接続元だけを許可します。
 - `Jwt__Audience`
 - `Jwt__SigningKey`
 - `ASPNETCORE_ENVIRONMENT`
-
-参考:
-
-- [Configure an App Service app in the Azure portal](https://learn.microsoft.com/en-us/azure/app-service/configure-common)
+- `ASPNETCORE_HTTP_PORTS`
 
 ### 6. API をデプロイする
 
-初回は手動でもよいですが、継続運用を考えると GitHub Actions に寄せるのが楽です。
+初回は `StockerWebAPI/deploy/azure/scripts/` のスクリプト雛形を使ってもよいです。
 
 公開後に確認する項目:
 
@@ -140,7 +130,7 @@ SQL Server の `Networking` で、必要な接続元だけを許可します。
 ## リリース前チェック
 
 - Azure 上のリソース名を記録した
-- App Service の URL を確認した
+- API 公開 URL を確認した
 - 環境変数を Azure に設定した
 - `Jwt__SigningKey` を開発用のまま使っていない
 - DB 接続を確認した
@@ -150,16 +140,9 @@ SQL Server の `Networking` で、必要な接続元だけを許可します。
 
 ## Current Gap
 
-現在の実装では、Azure 本番 DB 候補とアプリ実装に差分があります。
+現在の実装では、Azure 配置用の雛形と Docker テストはあるものの、実環境へのデプロイ検証はまだです。
 
-- 希望: `Azure SQL Database Serverless`
-- 現状: `PostgreSQL`
-
-Azure SQL へ切り替えるには、少なくとも以下が必要です。
-
-- EF Core Provider を SQL Server 用へ変更
-- `UseNpgsql` を `UseSqlServer` へ変更
-- Migration の作り直しまたは移行方針の整理
-- SQL 方言差分の確認
-
-この差分対応は、Azure リソース作成とは別タスクで扱うのが安全です。
+- ACR / Container Apps / App Service の実リソース作成
+- PostgreSQL Flexible Server との接続確認
+- Secret 管理の確定
+- 監視設定の実運用化

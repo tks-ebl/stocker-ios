@@ -68,6 +68,13 @@
 - 役割
   - 日付やユーザーコードで絞り込んだ実績の返却
 
+### 3.8 ヘルスチェック
+
+- `GET /health`
+- 役割
+  - API の稼働確認
+  - Docker / Azure の疎通確認
+
 ## 4. クライアント側方針
 
 - `warehouseId` を API アクセスの基本条件とする
@@ -93,6 +100,23 @@
 - 可能であればホスト名ベースで接続し、証明書の検証ができるようにする
 - ローカル LAN モード専用の API やレスポンス形式は定義しない
 
+## 5.2 現在の Web API 実装状況
+
+- `StockerWebAPI` では JWT Bearer 認証を実装済み
+- Swagger / OpenAPI を有効化している
+- 例外時は `ProblemDetails` ベースで返却する
+- 出荷実績登録時は以下をサーバー側で検証する
+  - 重複行
+  - 在庫不足
+  - 出荷計画の倉庫不一致
+  - 出荷先コード不一致
+  - 計画数量超過
+- ローカル起動時は Docker テストで以下を確認できる
+  - `GET /health`
+  - `POST /auth/login`
+  - 認証付き `GET /warehouses/{warehouseId}/inventory`
+  - `POST /warehouses/{warehouseId}/shipping-results`
+
 ## 6. 実装段階の分離
 
 - Phase 1
@@ -108,17 +132,24 @@
 - API のレスポンス形式
 - オフライン時のキャッシュ戦略
 - データ更新競合時の扱い
-- 接続先切替 UI の配置
 - ローカル証明書配布方法
+
+補足:
+
+- 接続先切替 UI はアプリ内画面として配置する方針を採用済み
+- Azure デモ制限は初期版から有効化する方針を採用済み
+- ローカル LAN モードは App Store 公開版と同一アプリ内で扱う方針を採用済み
 
 ## 8. 初期実装方針
 
 - API は ASP.NET Core 8 の Controller ベースで構成する
 - ORM は Entity Framework Core + PostgreSQL を利用する
 - 開発段階ではデモシードデータを投入し、iOS 接続確認を優先する
-- 本番前には `EnsureCreated` から Migration 運用へ移行する
+- スキーマ管理は EF Core Migration ベースとする
+- Docker テスト用設定と Azure 配置用設定は分離して管理する
 
 ## 9. 関連仕様
 
 - 接続設定 UI は `admin-connection-setting-spec.md` を参照する
 - Azure デモ制限レスポンスは `demo-limit-api-spec.md` を参照する
+- 現在の実装ギャップは `implementation-gap-notes.md` を参照する

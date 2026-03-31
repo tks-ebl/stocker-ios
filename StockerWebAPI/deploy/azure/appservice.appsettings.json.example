@@ -1,0 +1,43 @@
+[
+  {
+    "name": "ASPNETCORE_ENVIRONMENT",
+    "value": "Production",
+    "slotSetting": false
+  },
+  {
+    "name": "ASPNETCORE_HTTP_PORTS",
+    "value": "8080",
+    "slotSetting": false
+  },
+  {
+    "name": "ConnectionStrings__Default",
+    "value": "Host=<postgres-flexible-server>.postgres.database.azure.com;Port=5432;Database=stocker;Username=<db-user>;Password=<db-password>;Ssl Mode=Require;Trust Server Certificate=false",
+    "slotSetting": true
+  },
+  {
+    "name": "Jwt__Issuer",
+    "value": "StockerWebAPI",
+    "slotSetting": false
+  },
+  {
+    "name": "Jwt__Audience",
+    "value": "StockerClients",
+    "slotSetting": false
+  },
+  {
+    "name": "Jwt__SigningKey",
+    "value": "<set-a-long-random-secret>",
+    "slotSetting": true
+  },
+  {
+    "name": "Seed__EnableDemoSeed",
+    "value": "false",
+    "slotSetting": false
+  },
+  {
+    "name": "WEBSITES_PORT",
+    "value": "8080",
+    "slotSetting": false
+  }
+]
+

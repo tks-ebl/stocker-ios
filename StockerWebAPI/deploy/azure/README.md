@@ -8,6 +8,14 @@
   - Azure 用の環境変数サンプル
 - `containerapp.template.yaml`
   - Azure Container Apps 用のテンプレート
+- `appservice.appsettings.json.example`
+  - Azure App Service for Containers 用の App Settings サンプル
+- `scripts/build-and-push-acr.sh`
+  - Docker イメージを ACR へ push する
+- `scripts/deploy-containerapp.sh`
+  - Container Apps へ反映する
+- `scripts/apply-appservice-settings.sh`
+  - App Service の環境変数を反映する
 
 ## Separation Policy
 
@@ -19,7 +27,14 @@
 ## Recommended Flow
 
 1. Docker で `./scripts/run-docker-tests.sh` を実行する
-2. API イメージをビルドして ACR へ push する
-3. `containerapp.template.yaml` を環境値に合わせて反映する
-4. PostgreSQL Flexible Server の接続情報を Secret 化して注入する
+2. `./deploy/azure/scripts/build-and-push-acr.sh <acr-name> stockerwebapi-api <tag>` を実行する
+3. Container Apps の場合
+4. `./deploy/azure/scripts/deploy-containerapp.sh ...` を実行する
+5. App Service の場合
+6. `appservice.appsettings.json.example` を環境値に合わせて複製し、`./deploy/azure/scripts/apply-appservice-settings.sh ...` を実行する
 
+## Notes
+
+- スクリプト実行には `az` CLI のログインが必要です
+- Container Apps と App Service の両方で `ConnectionStrings__Default` と `Jwt__SigningKey` は Secret 扱いにしてください
+- ここにあるテンプレートは Docker テスト用設定と分離しており、`docker-compose.yml` は変更せずに共存できます

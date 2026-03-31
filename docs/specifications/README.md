@@ -22,10 +22,24 @@
   - `demo-limit-api-spec.md`
 - Azure / ローカル LAN 切替の条件を確認したい
   - `local-lan-api-spec.md`
+- 現在の実装差分と残課題を確認したい
+  - `implementation-gap-notes.md`
 - 品質面や公開判断の基準を確認したい
   - `nonfunctional-spec.md`
 - 実装済みの Web API 構成と起動方法を確認したい
   - `../../StockerWebAPI/README.md`
+
+## 補足
+
+- `admin-connection-setting-spec.md`
+- `demo-limit-api-spec.md`
+- `local-lan-api-spec.md`
+
+これらは将来実装向けの仕様を含みます。2026-03-31 時点では、iOS 側に未反映の項目と、方針のみ確定済みの項目が混在しています。
+
+- `接続設定` はアプリ内画面として持たせる方針を採用する
+- Azure デモ制限は初期版から入れる方針を採用する
+- ローカル LAN モードは App Store 公開版と同一アプリ内で扱う方針を採用する
 
 ## 更新ルール
 
