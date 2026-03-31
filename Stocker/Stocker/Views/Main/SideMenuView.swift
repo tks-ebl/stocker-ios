@@ -64,6 +64,25 @@ struct SideMenuView: View {
                 }
 
                 Button(action: {
+                    menuState.navigate(to: .connectionSettings)
+                }) {
+                    HStack(spacing: 16) {
+                        Image(systemName: "gearshape.fill")
+                            .font(.system(size: 18))
+                            .frame(width: 28, height: 28)
+                            .foregroundColor(.appPrimary)
+
+                        Text("接続設定")
+                            .font(.body)
+                            .foregroundColor(.primary)
+
+                        Spacer()
+                    }
+                    .padding(.vertical, 6)
+                }
+                .buttonStyle(PlainButtonStyle())
+
+                Button(action: {
                     userSession.logout()
                     menuState.isMenuOpen = false
                 }) {

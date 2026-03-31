@@ -2,7 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	    <key>NSCameraUsageDescription</key>
-	    <string>QRコード用カメラ</string>
+	<key>NSCameraUsageDescription</key>
+	<string>QRコード用カメラ</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>同一ネットワーク上の業務サーバーへ接続するために使用します</string>
 </dict>
 </plist>

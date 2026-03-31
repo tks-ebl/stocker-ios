@@ -70,13 +70,22 @@ final class APIClient {
         }
     }
 
+    func checkHealth(baseURLString: String) async throws {
+        let request = try makeRequest(path: "/health", method: "GET", overrideBaseURL: AppConnectionSettings.normalizedURL(from: baseURLString))
+        let (_, response) = try await execute(request)
+        guard let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) else {
+            throw APIClientError.invalidResponse
+        }
+    }
+
     private func makeRequest(
         path: String,
         method: String,
         queryItems: [URLQueryItem] = [],
-        bearerToken: String? = nil
+        bearerToken: String? = nil,
+        overrideBaseURL: URL? = nil
     ) throws -> URLRequest {
-        guard let baseURL = AppConnectionSettings.apiBaseURL else {
+        guard let baseURL = overrideBaseURL ?? AppConnectionSettings.apiBaseURL else {
             throw APIClientError.invalidBaseURL
         }
 

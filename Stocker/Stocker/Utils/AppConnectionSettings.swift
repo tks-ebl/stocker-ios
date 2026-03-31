@@ -2,10 +2,11 @@ import Foundation
 
 enum AppConnectionSettings {
     private static let apiBaseURLKey = "api_base_url"
+    private static let defaultAPIBaseURL = "http://localhost:8080"
 
     static func registerDefaults() {
         UserDefaults.standard.register(defaults: [
-            apiBaseURLKey: "http://localhost:8080"
+            apiBaseURLKey: defaultAPIBaseURL
         ])
     }
 
@@ -14,11 +15,23 @@ enum AppConnectionSettings {
     }
 
     static var apiBaseURL: URL? {
-        let rawValue = apiBaseURLString
-        guard !rawValue.isEmpty else {
+        normalizedURL(from: apiBaseURLString)
+    }
+
+    static func save(apiBaseURLString: String) {
+        UserDefaults.standard.set(apiBaseURLString.trimmingCharacters(in: .whitespacesAndNewlines), forKey: apiBaseURLKey)
+    }
+
+    static func resetToDefault() {
+        UserDefaults.standard.set(defaultAPIBaseURL, forKey: apiBaseURLKey)
+    }
+
+    static func normalizedURL(from rawValue: String) -> URL? {
+        let trimmed = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
             return nil
         }
 
-        return URL(string: rawValue)
+        return URL(string: trimmed)
     }
 }
