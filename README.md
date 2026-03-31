@@ -91,7 +91,7 @@ Docker テスト:
 ## App Configuration
 
 - Bundle Identifier: `ebl.dev.app.Stocker`
-- Display Name: `Stocker`
+- Display Name: `COMPACT STOCKER`
 - Current Version: `0.1`
 - Build Number: `1`
 

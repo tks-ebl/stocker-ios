@@ -1,20 +1,27 @@
 # App Store Metadata Draft
 
-Stocker を App Store Connect に登録するときの下書きです。
+COMPACT STOCKER を App Store Connect に登録するときの下書きです。
+
+再申請向けの整理版は以下を参照してください。
+
+- `docs/appstore/submission-checklist.md`
+- `docs/appstore/review-notes.md`
+- `docs/appstore/privacy-mapping.md`
+- `docs/appstore/metadata-ja.md`
 
 前提:
 
 - App Store 公開版は無料アプリとして提供する
-- Azure 接続はデモ用途として制限付きで提供する
-- 組織向け本運用は、契約済み環境または社内サーバー接続を前提とする
+- 小規模利用向けの一般公開アプリとして提供する
+- 基本機能は無料で利用できる
+- サーバー側で利用量に一定の上限を設ける場合がある
 - 公開版の Azure 接続先は固定 URL とする
-- 社内運用時は管理者が `https://IPアドレス` を設定する
-- `https://IPアドレス` 接続では、証明書の SAN にその IP アドレスを含める
+- URL 切り替え機能は必要に応じて内部向けに保持するが、公開向け導線では露出しない
 
 ## App Information
 
-- Name: `Stocker`
-- Subtitle: `在庫と出荷をシンプルに確認`
+- Name: `COMPACT STOCKER`
+- Subtitle: `小規模向け在庫管理をシンプルに`
 - Primary Category: `Business`
 - Secondary Category: `Productivity`
 - Bundle ID: `ebl.dev.app.Stocker`
@@ -25,7 +32,7 @@ Stocker を App Store Connect に登録するときの下書きです。
 ### Description
 
 ```text
-Stocker は、在庫確認と出荷作業の流れをシンプルに確認できる iPhone アプリです。
+COMPACT STOCKER は、在庫確認と出荷作業の流れをシンプルに確認できる iPhone アプリです。
 
 主な機能
 ・在庫一覧の確認
@@ -34,14 +41,14 @@ Stocker は、在庫確認と出荷作業の流れをシンプルに確認でき
 ・QRコード読み取りによる入力補助
 ・出荷実績の検索と CSV 出力
 
-無料公開版では、接続先として制限付きのデモ環境を利用できます。
-組織導入時は、契約環境または社内サーバー接続での運用を想定しています。
+小規模な利用を想定し、基本機能を無料で利用できます。
+利用量には一部上限がありますが、日々の確認やフリーユース用途でも使いやすい構成を目指しています。
 ```
 
 ### Promotional Text
 
 ```text
-在庫確認、出荷作業、出荷実績確認の流れを無料で確認できるアプリです。
+小規模向けの在庫確認と出荷作業を、無料でシンプルに始められるアプリです。
 ```
 
 ### Keywords
@@ -60,11 +67,10 @@ inventory,stock,warehouse,shipping,logistics,qr
 ### Notes
 
 ```text
-This app is offered as a free public version.
-The Azure-backed environment available in the public app is intended for demonstration and evaluation use, and server-side limits may apply.
+This app is offered as a free public app for small-scale use.
+The submitted build connects to a hosted environment for App Review, and some server-side usage limits may apply.
 
 If the submitted build requires reviewer credentials, provide a dedicated account here.
-If local LAN mode is included in the submitted build, explain the required network conditions and how the reviewer can verify the main flows.
 ```
 
 ## App Privacy
