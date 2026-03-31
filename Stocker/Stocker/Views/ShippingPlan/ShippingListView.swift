@@ -103,7 +103,7 @@ struct ShippingListView: View {
                 ShippingDetailLotListView(selectedPlan: plan)
             }
         }
-        .task(id: "\(selectedDate.timeIntervalSince1970)-\(customerCode)-\(userSession.currentWarehouse?.apiWarehouseId ?? "")") {
+        .task(id: "\(selectedDate.timeIntervalSince1970)-\(customerCode)-\(userSession.currentWarehouse?.apiWarehouseId ?? "")-\(userSession.dataRefreshKey)") {
             await viewModel.loadIfNeeded(userSession: userSession, selectedDate: selectedDate, customerCode: customerCode)
         }
         //　画面遷移（ダイアログ）

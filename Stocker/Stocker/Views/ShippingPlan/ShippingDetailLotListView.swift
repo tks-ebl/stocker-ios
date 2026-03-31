@@ -213,6 +213,7 @@ struct ShippingDetailLotListView: View {
                 await MainActor.run {
                     isSaving = false
                     didSaveSuccessfully = true
+                    userSession.markDataUpdated()
                     showCompletionAlert = true
                 }
             } catch {

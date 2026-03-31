@@ -98,7 +98,7 @@ struct ShippingResultListView: View {
             ShareSheet(activityItems: [url])
         }
         .navigationTitle("🚚 出荷実績リスト")
-        .task(id: "\(date.timeIntervalSince1970)-\(userCode)-\(userSession.currentWarehouse?.apiWarehouseId ?? "")") {
+        .task(id: "\(date.timeIntervalSince1970)-\(userCode)-\(userSession.currentWarehouse?.apiWarehouseId ?? "")-\(userSession.dataRefreshKey)") {
             await viewModel.loadIfNeeded(userSession: userSession, date: date, userCode: userCode)
         }
     }

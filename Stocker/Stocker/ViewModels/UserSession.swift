@@ -36,6 +36,7 @@ final class UserSession: ObservableObject {
     @Published private(set) var currentUser: AppUser?
     @Published private(set) var currentWarehouse: Warehouse?
     @Published private(set) var authenticationSource: AuthenticationSource = .sample
+    @Published private(set) var dataRefreshKey: Int = 0
 
     var isLoggedIn: Bool {
         currentUser != nil && currentWarehouse != nil
@@ -62,6 +63,7 @@ final class UserSession: ObservableObject {
         currentUser = user
         currentWarehouse = warehouse
         authenticationSource = .sample
+        dataRefreshKey = 0
         TokenManager.clear()
     }
 
@@ -69,7 +71,12 @@ final class UserSession: ObservableObject {
         currentUser = nil
         currentWarehouse = nil
         authenticationSource = .sample
+        dataRefreshKey = 0
         TokenManager.clear()
+    }
+
+    func markDataUpdated() {
+        dataRefreshKey += 1
     }
 
     private func loginWithWebAPI(userCode: String, password: String) async throws {
@@ -91,6 +98,7 @@ final class UserSession: ObservableObject {
             apiWarehouseId: response.warehouse.warehouseId.uuidString
         )
         authenticationSource = .webAPI
+        dataRefreshKey = 0
         TokenManager.save(token: response.accessToken)
     }
 }

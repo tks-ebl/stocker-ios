@@ -187,7 +187,7 @@ struct InventoryListView: View {
                         .environmentObject(userSession)
                 }
             }
-            .task(id: userSession.currentWarehouse?.apiWarehouseId) {
+            .task(id: "\(userSession.currentWarehouse?.apiWarehouseId ?? "")-\(userSession.dataRefreshKey)") {
                 await viewModel.loadIfNeeded(userSession: userSession)
             }
         }

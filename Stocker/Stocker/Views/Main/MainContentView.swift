@@ -131,7 +131,7 @@ struct MainContentView: View {
 
             Spacer()
         }
-        .task(id: userSession.currentWarehouse?.apiWarehouseId) {
+        .task(id: "\(userSession.currentWarehouse?.apiWarehouseId ?? "")-\(userSession.dataRefreshKey)") {
             await dashboardViewModel.loadIfNeeded(userSession: userSession)
         }
     }
