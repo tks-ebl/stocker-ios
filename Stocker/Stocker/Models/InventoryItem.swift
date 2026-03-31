@@ -1,20 +1,53 @@
 import SwiftUI
 
 struct InventoryItem: Identifiable {
-    let id = UUID()
+    let id: UUID
     let warehouseId: String
     let location: String
     let itemCode: String
     let itemName: String
     let quantity: Int
     let history: [InventoryHistory]
+
+    init(
+        id: UUID = UUID(),
+        warehouseId: String,
+        location: String,
+        itemCode: String,
+        itemName: String,
+        quantity: Int,
+        history: [InventoryHistory]
+    ) {
+        self.id = id
+        self.warehouseId = warehouseId
+        self.location = location
+        self.itemCode = itemCode
+        self.itemName = itemName
+        self.quantity = quantity
+        self.history = history
+    }
 }
 
 struct InventoryHistory: Identifiable {
-    let id = UUID()
+    let id: UUID
     let movementDate: Date
     let quantity: Int
     let executedBy: String
+    let reason: String?
+
+    init(
+        id: UUID = UUID(),
+        movementDate: Date,
+        quantity: Int,
+        executedBy: String,
+        reason: String? = nil
+    ) {
+        self.id = id
+        self.movementDate = movementDate
+        self.quantity = quantity
+        self.executedBy = executedBy
+        self.reason = reason
+    }
 }
 
 let sampleInventoryItems: [InventoryItem] = [

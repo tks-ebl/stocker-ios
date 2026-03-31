@@ -4,12 +4,17 @@ import UIKit
 struct InventoryListView: View {
     @EnvironmentObject var menuState: MenuState
     @EnvironmentObject var userSession: UserSession
+    @StateObject private var viewModel = InventoryViewModel()
     
     @State private var selectedItem: InventoryItem?
     @State private var showPreview: Bool = false
     @State private var isNavigating: Bool = false
     
     var inventoryItems: [InventoryItem] {
+        if userSession.usesWebAPI {
+            return viewModel.items
+        }
+
         guard let warehouseId = userSession.currentWarehouse?.id else {
             return []
         }
@@ -38,7 +43,18 @@ struct InventoryListView: View {
                         .padding(.top, 8)
                     }
 
-                    if inventoryItems.isEmpty {
+                    if let errorMessage = viewModel.errorMessage, userSession.usesWebAPI {
+                        Text(errorMessage)
+                            .font(.footnote)
+                            .foregroundColor(.red)
+                            .padding(.horizontal)
+                    }
+
+                    if viewModel.isLoading && userSession.usesWebAPI {
+                        ProgressView("Web API から在庫一覧を取得しています")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal)
+                    } else if inventoryItems.isEmpty {
                         ContentUnavailableView(
                             "在庫データがありません",
                             systemImage: "cube.transparent",
@@ -168,7 +184,11 @@ struct InventoryListView: View {
             .navigationDestination(isPresented: $isNavigating) {
                 if let item = selectedItem {
                     InventoryHistoryDetailView(item: item)
+                        .environmentObject(userSession)
                 }
+            }
+            .task(id: userSession.currentWarehouse?.apiWarehouseId) {
+                await viewModel.loadIfNeeded(userSession: userSession)
             }
         }
     }
