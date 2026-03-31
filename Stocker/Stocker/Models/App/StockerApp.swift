@@ -6,6 +6,10 @@ struct StockerApp: App {
     @StateObject var menuState = MenuState()
     @StateObject var userSession = UserSession()
 
+    init() {
+        AppConnectionSettings.registerDefaults()
+    }
+
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([Item.self])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)

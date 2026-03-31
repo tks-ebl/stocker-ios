@@ -47,6 +47,10 @@ struct LoginView: View {
                 Text("サンプルログイン: USER1 から USER5")
                     .font(.caption)
                     .foregroundColor(.secondary)
+
+                Text("Web API ログイン: worker01 / leader01")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
 
             if let loginError = loginError {
@@ -83,12 +87,18 @@ struct LoginView: View {
         isLoading = true
         loginError = nil
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            let didLogin = userSession.login(userCode: userCd, password: password)
-            if !didLogin {
-                loginError = "ログインに失敗しました。USER1 から USER5 を入力してください。"
+        Task {
+            do {
+                try await userSession.login(userCode: userCd, password: password)
+                await MainActor.run {
+                    isLoading = false
+                }
+            } catch {
+                await MainActor.run {
+                    loginError = error.localizedDescription
+                    isLoading = false
+                }
             }
-            isLoading = false
         }
     }
 }
