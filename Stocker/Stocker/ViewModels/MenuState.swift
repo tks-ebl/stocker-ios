@@ -6,7 +6,6 @@ enum MenuSelection {
     case shippingWork
     case shippingResult
     case inventoryList
-    case connectionSettings
 }
 
 // メニューの状態を管理するクラス

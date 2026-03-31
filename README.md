@@ -18,8 +18,8 @@
 
 - ログイン画面
   - ユーザー ID / パスワード入力
-  - 現在は `USER1` から `USER5` のサンプルユーザーでログイン
-  - 将来は Web API 認証へ置き換える想定
+  - `USER1` から `USER5` のサンプルユーザーでログイン可能
+  - Web API 接続時は `worker01` / `leader01` の API ログインに対応
 - ホーム画面
   - 当日の状況カード表示
   - 棚卸日の簡易表示
@@ -51,14 +51,11 @@
 
 ## Project Status
 
-現在のデータはサンプルデータを利用しています。
+現在のデータは、サンプルデータと Web API 接続の両方に対応しています。
 
 未実装または今後の課題:
 
-- バックエンド API 連携
-- Web API 認証
 - 永続化データの本格利用
-- 接続先設定画面
 - Azure デモ制限の実装反映
 - ローカル LAN モードの実装反映
 - App Store 公開向けメタデータ整備
@@ -98,9 +95,11 @@ Docker テスト:
 ## Notes
 
 - `Info.plist` に `NSCameraUsageDescription` を設定済みです
-- ローカル LAN モード向けの権限設定や接続設定画面は今後追加予定です
+- `Info.plist` に `NSLocalNetworkUsageDescription` を設定済みです
 - 現在の iOS アプリは iPhone 専用です
 - iPad 対応は将来対応候補として検討します
+- 接続設定画面の実装ファイルはありますが、公開アプリ版では通常の操作導線から到達できない構成です
+- 接続先の切替はカスタマイズ版向け機能として保持し、公開アプリ版では表示しません
 - このリポジトリは App Store 公開の練習も兼ねて段階的に整備中です
 - Web API の詳細は `StockerWebAPI/README.md` を参照してください
 - Azure 最小構成の運用メモは `docs/deploy-azure-minimal.md`、`docs/config.md`、`docs/operations.md` を参照してください

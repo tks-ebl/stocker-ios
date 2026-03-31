@@ -16,8 +16,6 @@ struct MainScreenView: View {
                         ShippingResultSearchView()
                     case .inventoryList:
                         InventoryListView()
-                    case .connectionSettings:
-                        ConnectionSettingsView()
                     }
                 }
                 .disabled(menuState.isMenuOpen)
